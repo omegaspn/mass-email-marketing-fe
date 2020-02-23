@@ -1,0 +1,14 @@
+export const getRankDict = () => {
+  return {
+    1: "Newbie",
+    2: "Apprentice",
+    3: "Reviewer",
+    4: "Spotter",
+    5: "Explorer",
+    6: "Superstar",
+    8: "Expert",
+    9: "Master",
+    10: "Principle",
+    11: "Elite"
+  };
+};

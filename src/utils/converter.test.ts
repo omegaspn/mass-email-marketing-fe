@@ -1,0 +1,1 @@
+import { getRankDict } from "./converter";
