@@ -10,6 +10,7 @@ import { rankMapper } from "../../utils/mapper";
 
 const SendMail: FunctionComponent = () => {
   const [submitted, setSubmitted] = useState(false);
+  const [buttonText, setButtonText] = useState(t.button.sendMail);
   const [rankDict, setRankDict] = useState<Dictionary>({});
   const [emailData, setEmailData] = useState<EmailData[]>([]);
   const [bodyList, setBodyList] = useState<string[]>([]);
@@ -51,6 +52,25 @@ const SendMail: FunctionComponent = () => {
       `;
   };
 
+  const handleButton = () => {
+    if (buttonText === t.button.close) {
+      console.log("close app");
+      return;
+    }
+
+    setSubmitted(true);
+    const body_list: string[] = [];
+    const subject_list: string[] = [];
+    emailData.forEach(usr => {
+      subject_list.push(getEmailSubject(usr.user_name));
+      body_list.push(
+        getEmailBody(usr.reviews_left_to_uprank, usr.user_next_rank_id)
+      );
+    });
+    setBodyList(body_list);
+    setSubjectList(subject_list);
+  };
+
   return (
     <Box p={3}>
       <Text fontSize={4} fontWeight="bold" pb={3}>
@@ -80,24 +100,14 @@ const SendMail: FunctionComponent = () => {
         rankDict={rankDict}
         submitted={submitted}
         submittedCallback={value => setSubmitted(value)}
-      />
-      <Button
-        backgroundColor="#81CC75"
-        onClick={() => {
-          setSubmitted(true);
-          const body_list: string[] = [];
-          const subject_list: string[] = [];
-          emailData.map(usr => {
-            subject_list.push(getEmailSubject(usr.user_name));
-            body_list.push(
-              getEmailBody(usr.reviews_left_to_uprank, usr.user_next_rank_id)
-            );
-          });
-          setBodyList(body_list);
-          setSubjectList(subject_list);
+        successAllCallback={success => {
+          if (success) setButtonText(t.button.close);
+          else setButtonText(t.button.resendMail);
         }}
-      >
-        {t.button.sendMail}
+      />
+
+      <Button backgroundColor="#81CC75" onClick={handleButton}>
+        {buttonText}
       </Button>
     </Box>
   );

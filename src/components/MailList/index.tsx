@@ -2,7 +2,6 @@ import React, { FunctionComponent, useState, useEffect } from "react";
 import { Dictionary, EmailData } from "../../model";
 import { Box, Flex, Text } from "rebass";
 import { t } from "../../i18n";
-import { rankMapper } from "../../utils/mapper";
 import styled from "styled-components";
 import { sendEmail } from "../../api/EmailApi";
 
@@ -13,6 +12,7 @@ interface MailListProps {
   rankDict: Dictionary;
   submitted: boolean;
   submittedCallback: (value: boolean) => void;
+  successAllCallback: (success: boolean) => void;
 }
 
 const TableWrapper = styled(Box)`
@@ -42,13 +42,17 @@ const MailList: FunctionComponent<MailListProps> = ({
   subjectList,
   rankDict,
   submitted,
-  submittedCallback
+  submittedCallback,
+  successAllCallback
 }) => {
-  const [statusList, setStatusList] = useState(Array(emailList.length));
+  const [statusList, setStatusList] = useState(
+    Array(emailList.length).fill(t.status.toSend)
+  );
   const [statusListColor, setStatusListColor] = useState(
     Array(emailList.length).fill("#00000f")
   );
   const [syncSubmitted, setSyncSubmitted] = useState<Boolean>();
+  // const [sendMailsSuccess, setSendMailsSuccess] = useState(false);
 
   const updateStatusListByCode = (code: number, index: number) => {
     if (code === 204) {
@@ -65,18 +69,18 @@ const MailList: FunctionComponent<MailListProps> = ({
       );
     // set flag when send all mail success
     // setSendMailsSuccess(isSendMailSuccessAll);
+    successAllCallback(isSendMailSuccessAll());
   };
 
   const handleSendMail = () => {
     emailList.forEach(async (usr, index) => {
       try {
-        setSyncSubmitted(false);
-
         const response = await sendEmail(
           emailList[index].email,
           bodyList[index],
           subjectList[index]
         );
+        setSyncSubmitted(false);
 
         // pending resposne
         statusList[index] = t.status.sending;
@@ -85,14 +89,11 @@ const MailList: FunctionComponent<MailListProps> = ({
         updateStatusListByCode(response.status, index);
       } catch (error) {
         const code = error.response && error.response.status;
-
         if (code === 400 || code === 500) {
-          console.log(code);
-
-          // statusListColor[index] = "#ff0000";
-          // statusList[index] = t.status.failed;
-          // setStatusList([...statusList]);
-          // setStatusListColor([...statusListColor]);
+          statusListColor[index] = "#ff0000";
+          statusList[index] = t.status.failed;
+          setStatusList([...statusList]);
+          setStatusListColor([...statusListColor]);
         }
       }
     });
@@ -136,8 +137,7 @@ const MailList: FunctionComponent<MailListProps> = ({
                   {bodyList[index]}
                 </Text>
                 <Text width={[1, 1 / 3]} color={statusListColor[index]}>
-                  {t.status.toSend}
-                  {/* {statusList[index]} */}
+                  {statusList[index]}
                 </Text>
               </Row>
             </ContentRow>

@@ -7,7 +7,7 @@ configure({ adapter: new Adapter() });
 
 describe("InputUpload component", () => {
   it("should render correctly", () => {
-    const wrapper = shallow(<InputUpload />);
+    const wrapper = shallow(<InputUpload onClick={jest.fn()} />);
     expect(wrapper).toMatchSnapshot();
   });
 });

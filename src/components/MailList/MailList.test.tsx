@@ -15,7 +15,17 @@ describe("MailList component", () => {
         reviews_left_to_uprank: 3
       }
     ];
-    const wrapper = shallow(<MailList email_list={mockData} />);
+    const wrapper = shallow(
+      <MailList
+        emailList={mockData}
+        bodyList={[]}
+        subjectList={[]}
+        rankDict={{}}
+        submitted={false}
+        submittedCallback={jest.fn()}
+        successAllCallback={jest.fn()}
+      />
+    );
     expect(wrapper).toMatchSnapshot();
   });
 });
