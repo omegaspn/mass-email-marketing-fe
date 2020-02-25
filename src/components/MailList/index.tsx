@@ -1,12 +1,19 @@
-import React, { FunctionComponent, useState } from "react";
-import { EmailList } from "../../model";
-import { Box, Flex, Text, Button } from "rebass";
+import React, { FunctionComponent, useState, useEffect } from "react";
+import { Dictionary, EmailData } from "../../model";
+import { Box, Flex, Text } from "rebass";
 import { t } from "../../i18n";
 import { rankMapper } from "../../utils/mapper";
 import styled from "styled-components";
 import { sendEmail } from "../../api/EmailApi";
-import { getRankDict } from "../../utils/converter";
-import axios, { AxiosResponse } from "axios";
+
+interface MailListProps {
+  emailList: EmailData[];
+  bodyList: string[];
+  subjectList: string[];
+  rankDict: Dictionary;
+  submitted: boolean;
+  submittedCallback: (value: boolean) => void;
+}
 
 const TableWrapper = styled(Box)`
   & :last-child {
@@ -24,31 +31,24 @@ const ContentRow = styled(Box)`
   border-bottom: #f8f0f0 1px solid;
 `;
 
-const getEmailSubject = (usrName: string) => {
-  return `${t.listMessage.greeting} ${usrName}`;
-};
+const Row = styled(Flex)`
+  justify-content: space-around;
+  flex-wrap: wrap;
+`;
 
-const getEmailBody = (reviewsLeft: number, nexRankId: number) => {
-  return `
-    ${t.listMessage.more}  
-    ${reviewsLeft.toString()}
-    ${t.listMessage.review}
-    ${t.listMessage.nextRank}  
-    ${rankMapper(getRankDict(), nexRankId)}
-    ${t.listMessage.pleaseShare}  
-    `;
-};
-
-const MailList: FunctionComponent<EmailList> = ({ email_list }) => {
-  const emailSubjectList = Array(email_list.length);
-  const emailBodyList = Array(email_list.length);
-  const [statusList, setStatusList] = useState(
-    Array(email_list.length).fill(t.status.toSend)
-  );
+const MailList: FunctionComponent<MailListProps> = ({
+  emailList,
+  bodyList,
+  subjectList,
+  rankDict,
+  submitted,
+  submittedCallback
+}) => {
+  const [statusList, setStatusList] = useState(Array(emailList.length));
   const [statusListColor, setStatusListColor] = useState(
-    Array(email_list.length).fill("#00000f")
+    Array(emailList.length).fill("#00000f")
   );
-  const [sendMailsSuccess, setSendMailsSuccess] = useState(false);
+  const [syncSubmitted, setSyncSubmitted] = useState<Boolean>();
 
   const updateStatusListByCode = (code: number, index: number) => {
     if (code === 204) {
@@ -64,18 +64,18 @@ const MailList: FunctionComponent<EmailList> = ({ email_list }) => {
         status => status === statusList[0] && statusList[0] === t.status.success
       );
     // set flag when send all mail success
-    setSendMailsSuccess(isSendMailSuccessAll);
+    // setSendMailsSuccess(isSendMailSuccessAll);
   };
 
   const handleSendMail = () => {
-    try {
-      const requests: AxiosResponse<any>[] = [];
+    emailList.forEach(async (usr, index) => {
+      try {
+        setSyncSubmitted(false);
 
-      email_list.map(async (usr, index) => {
         const response = await sendEmail(
-          email_list[index].email,
-          emailSubjectList[index],
-          emailBodyList[index]
+          emailList[index].email,
+          bodyList[index],
+          subjectList[index]
         );
 
         // pending resposne
@@ -83,69 +83,67 @@ const MailList: FunctionComponent<EmailList> = ({ email_list }) => {
         statusListColor[index] = "#3656C7";
 
         updateStatusListByCode(response.status, index);
-        requests.push(response);
-      });
+      } catch (error) {
+        const code = error.response && error.response.status;
 
-      axios.all(requests);
-    } catch (error) {
-      const code = error.response && error.response.status;
-      console.log(code);
+        if (code === 400 || code === 500) {
+          console.log(code);
 
-      if (code === 400 || code === 500) {
-        // statusListColor[index] = "#ff0000";
-        // statusList[index] = t.status.failed;
-        // setStatusList([...statusList]);
-        // setStatusListColor([...statusListColor]);
+          // statusListColor[index] = "#ff0000";
+          // statusList[index] = t.status.failed;
+          // setStatusList([...statusList]);
+          // setStatusListColor([...statusListColor]);
+        }
       }
-    }
+    });
+
+    // axios.all(requests);
   };
 
-  const getButtonMessage = () => {
-    if (sendMailsSuccess) return t.button.close;
-    else if (statusList.includes(t.status.failed)) return t.button.resendMail;
-    else return t.button.sendMail;
-  };
+  if (syncSubmitted) {
+    handleSendMail();
+  } else {
+    submittedCallback(false);
+  }
+
+  useEffect(() => {}, [emailList]);
+  useEffect(() => {}, [bodyList]);
+  useEffect(() => {}, [subjectList]);
+  useEffect(() => {}, [rankDict]);
+  useEffect(() => {
+    setSyncSubmitted(submitted);
+  }, [submitted]);
 
   return (
     <Box>
       <HeaderRow>
-        <Flex justifyContent="space-around">
-          <Text width={1 / 3}>{t.listHeader.email}</Text>
-          <Text width={1 / 3}>{t.listHeader.message}</Text>
-          <Text width={1 / 3}>{t.listHeader.status}</Text>
-        </Flex>
+        <Row>
+          <Text width={[1, 1 / 3]}>{t.listHeader.email}</Text>
+          <Text width={[1, 1 / 3]}>{t.listHeader.message}</Text>
+          <Text width={[1, 1 / 3]}>{t.listHeader.status}</Text>
+        </Row>
       </HeaderRow>
       <TableWrapper>
-        {email_list.map((usr, index) => {
+        {emailList.map((usr, index) => {
           return (
             <ContentRow key={index}>
-              <Flex justifyContent="space-around">
-                <Text width={1 / 3}>{usr.email}</Text>
-                <Text width={1 / 3}>
-                  {(emailSubjectList[index] = getEmailSubject(usr.user_name))}
+              <Row>
+                <Text width={[1, 1 / 3]}>{usr.email}</Text>
+                <Text width={[1, 1 / 3]}>
+                  {subjectList[index]}
                   <br />
                   <br />
-                  {
-                    (emailBodyList[index] = getEmailBody(
-                      usr.reviews_left_to_uprank,
-                      usr.user_next_rank_id
-                    ))
-                  }
+                  {bodyList[index]}
                 </Text>
-                <Text width={1 / 3} color={statusListColor[index]}>
-                  {statusList[index]}
+                <Text width={[1, 1 / 3]} color={statusListColor[index]}>
+                  {t.status.toSend}
+                  {/* {statusList[index]} */}
                 </Text>
-              </Flex>
+              </Row>
             </ContentRow>
           );
         })}
       </TableWrapper>
-      <Button
-        backgroundColor="#81CC75"
-        onClick={sendMailsSuccess ? () => window.close() : handleSendMail}
-      >
-        {getButtonMessage()}
-      </Button>
     </Box>
   );
 };
