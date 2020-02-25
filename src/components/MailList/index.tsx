@@ -81,11 +81,12 @@ const MailList: FunctionComponent<MailListProps> = ({
         );
         setSyncSubmitted(false);
 
-        // pending resposne
+        // pending response
         statusList[index] = t.status.sending;
         statusListColor[index] = "#3656C7";
 
-        updateStatusListByCode(response.status, index);
+        if (response.status === 204)
+          updateStatusListByCode(response.status, index);
       } catch (error) {
         const code = error.response && error.response.status;
         if (code === 400 || code === 500) {

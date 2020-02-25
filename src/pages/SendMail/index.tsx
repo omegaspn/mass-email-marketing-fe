@@ -10,6 +10,7 @@ import { rankMapper } from "../../utils/mapper";
 
 const SendMail: FunctionComponent = () => {
   const [submitted, setSubmitted] = useState(false);
+  const [showMailList, setShowMailList] = useState(false);
   const [buttonText, setButtonText] = useState(t.button.sendMail);
   const [rankDict, setRankDict] = useState<Dictionary>({});
   const [emailData, setEmailData] = useState<EmailData[]>([]);
@@ -58,6 +59,7 @@ const SendMail: FunctionComponent = () => {
       return;
     }
 
+    setShowMailList(true);
     setSubmitted(true);
     const body_list: string[] = [];
     const subject_list: string[] = [];
@@ -92,18 +94,20 @@ const SendMail: FunctionComponent = () => {
       >
         {t.inputs.ranks}
       </InputUpload>
-      <MailList
-        emailList={emailData}
-        bodyList={bodyList}
-        subjectList={subjectList}
-        rankDict={rankDict}
-        submitted={submitted}
-        submittedCallback={value => setSubmitted(value)}
-        successAllCallback={success => {
-          if (success) setButtonText(t.button.close);
-          else setButtonText(t.button.resendMail);
-        }}
-      />
+      {showMailList && (
+        <MailList
+          emailList={emailData}
+          bodyList={bodyList}
+          subjectList={subjectList}
+          rankDict={rankDict}
+          submitted={submitted}
+          submittedCallback={value => setSubmitted(value)}
+          successAllCallback={success => {
+            if (success) setButtonText(t.button.close);
+            else setButtonText(t.button.resendMail);
+          }}
+        />
+      )}
       <Flex justifyContent="center">
         <Button
           p={"12px 36px"}
