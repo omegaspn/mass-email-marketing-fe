@@ -1,5 +1,5 @@
 import React, { FunctionComponent, useState } from "react";
-import { Box, Text, Button } from "rebass";
+import { Box, Text, Button, Flex } from "rebass";
 import { InputUpload } from "../../components";
 import { t } from "../../i18n";
 import { EmailData, Dictionary } from "../../model";
@@ -30,7 +30,7 @@ const SendMail: FunctionComponent = () => {
           setEmailData(getEmailData(data));
         else if (uploadedFile.name === "ranks.csv")
           setRankDict(getRankDict(data));
-        else console.log("please update emails.csv or ranks.csv");
+        else console.log("please upload emails.csv or ranks.csv");
       }
     } catch (error) {
       console.log(error);
@@ -72,7 +72,7 @@ const SendMail: FunctionComponent = () => {
   };
 
   return (
-    <Box p={3}>
+    <Box p={4}>
       <Text fontSize={4} fontWeight="bold" pb={3}>
         {t.title}
       </Text>
@@ -92,7 +92,6 @@ const SendMail: FunctionComponent = () => {
       >
         {t.inputs.ranks}
       </InputUpload>
-
       <MailList
         emailList={emailData}
         bodyList={bodyList}
@@ -105,10 +104,15 @@ const SendMail: FunctionComponent = () => {
           else setButtonText(t.button.resendMail);
         }}
       />
-
-      <Button backgroundColor="#81CC75" onClick={handleButton}>
-        {buttonText}
-      </Button>
+      <Flex justifyContent="center">
+        <Button
+          p={"12px 36px"}
+          backgroundColor="#81CC75"
+          onClick={handleButton}
+        >
+          {buttonText}
+        </Button>
+      </Flex>
     </Box>
   );
 };

@@ -68,7 +68,6 @@ const MailList: FunctionComponent<MailListProps> = ({
         status => status === statusList[0] && statusList[0] === t.status.success
       );
     // set flag when send all mail success
-    // setSendMailsSuccess(isSendMailSuccessAll);
     successAllCallback(isSendMailSuccessAll());
   };
 
@@ -97,8 +96,6 @@ const MailList: FunctionComponent<MailListProps> = ({
         }
       }
     });
-
-    // axios.all(requests);
   };
 
   if (syncSubmitted) {
@@ -119,9 +116,15 @@ const MailList: FunctionComponent<MailListProps> = ({
     <Box>
       <HeaderRow>
         <Row>
-          <Text width={[1, 1 / 3]}>{t.listHeader.email}</Text>
-          <Text width={[1, 1 / 3]}>{t.listHeader.message}</Text>
-          <Text width={[1, 1 / 3]}>{t.listHeader.status}</Text>
+          <Text width={[1 / 3]} px={3} fontWeight="bold">
+            {t.listHeader.email}
+          </Text>
+          <Text width={[1 / 3]} px={3} fontWeight="bold">
+            {t.listHeader.message}
+          </Text>
+          <Text width={[1 / 3]} px={3} fontWeight="bold">
+            {t.listHeader.status}
+          </Text>
         </Row>
       </HeaderRow>
       <TableWrapper>
@@ -129,14 +132,18 @@ const MailList: FunctionComponent<MailListProps> = ({
           return (
             <ContentRow key={index}>
               <Row>
-                <Text width={[1, 1 / 3]}>{usr.email}</Text>
-                <Text width={[1, 1 / 3]}>
+                <Text width={[1, 1 / 3]} px={3}>
+                  {usr.email}
+                </Text>
+                <Text width={[1, 1 / 3]} px={3}>
                   {subjectList[index]}
                   <br />
                   <br />
                   {bodyList[index]}
+                  <br />
+                  <br />
                 </Text>
-                <Text width={[1, 1 / 3]} color={statusListColor[index]}>
+                <Text width={[1, 1 / 3]} px={3} color={statusListColor[index]}>
                   {statusList[index]}
                 </Text>
               </Row>
