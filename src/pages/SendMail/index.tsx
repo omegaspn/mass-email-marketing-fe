@@ -12,34 +12,55 @@ const SendMail: FunctionComponent = () => {
   const [submitted, setSubmitted] = useState(false);
   const [showMailList, setShowMailList] = useState(false);
   const [buttonText, setButtonText] = useState(t.button.sendMail);
+
+  // dict
   const [rankDict, setRankDict] = useState<Dictionary>({});
+
+  // data for display on MailList
   const [emailData, setEmailData] = useState<EmailData[]>([]);
   const [bodyList, setBodyList] = useState<string[]>([]);
   const [subjectList, setSubjectList] = useState<string[]>([]);
 
-  const uploadApi = async (id: string) => {
+  // csv file
+  const [emailFile, setEmailFile] = useState<File>();
+  const [rankFile, setRankFile] = useState<File>();
+
+  const uploadFile = (id: string): File => {
+    const csvfile = document.querySelector(id) as any;
+    const uploadedFile = csvfile.files[0];
+    return uploadedFile;
+  };
+
+  const getEmailSubject = (usrName: string) => {
+    return `${t.listMessage.greeting} ${usrName}`;
+  };
+
+  const getEmailFile = async () => {
     try {
-      const csvfile = document.querySelector(id) as any;
-      const uploadedFile = csvfile.files[0];
-      if (uploadedFile) {
+      if (emailFile) {
         const selectFileReponse = await axios.get(
-          `${process.env.PUBLIC_URL}/data/${uploadedFile.name}`
+          `${process.env.PUBLIC_URL}/data/${emailFile.name}`
         );
         const data = selectFileReponse.data;
-
-        if (uploadedFile.name === "emails.csv")
-          setEmailData(getEmailData(data));
-        else if (uploadedFile.name === "ranks.csv")
-          setRankDict(getRankDict(data));
-        else console.log("please upload emails.csv or ranks.csv");
+        setEmailData(getEmailData(data));
       }
     } catch (error) {
       console.log(error);
     }
   };
 
-  const getEmailSubject = (usrName: string) => {
-    return `${t.listMessage.greeting} ${usrName}`;
+  const getRankFile = async () => {
+    try {
+      if (rankFile) {
+        const selectFileReponse = await axios.get(
+          `${process.env.PUBLIC_URL}/data/${rankFile.name}`
+        );
+        const data = selectFileReponse.data;
+        setRankDict(getRankDict(data));
+      }
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   const getEmailBody = (reviewsLeft: number, nexRankId: number) => {
@@ -54,23 +75,38 @@ const SendMail: FunctionComponent = () => {
   };
 
   const handleButton = () => {
-    if (buttonText === t.button.close) {
-      console.log("close app");
-      return;
-    }
+    try {
+      if (buttonText === t.button.close) {
+        console.log("close app");
+        return;
+      }
 
-    setShowMailList(true);
-    setSubmitted(true);
-    const body_list: string[] = [];
-    const subject_list: string[] = [];
-    emailData.forEach(usr => {
-      subject_list.push(getEmailSubject(usr.user_name));
-      body_list.push(
-        getEmailBody(usr.reviews_left_to_uprank, usr.user_next_rank_id)
-      );
-    });
-    setBodyList(body_list);
-    setSubjectList(subject_list);
+      setSubmitted(true);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const verifyUploaded = () => {
+    getEmailFile();
+    getRankFile();
+
+    if (rankFile && emailFile) {
+      const body_list: string[] = [];
+      const subject_list: string[] = [];
+
+      emailData.forEach(usr => {
+        subject_list.push(getEmailSubject(usr.user_name));
+        body_list.push(
+          getEmailBody(usr.reviews_left_to_uprank, usr.user_next_rank_id)
+        );
+      });
+
+      setBodyList(body_list);
+      setSubjectList(subject_list);
+
+      setShowMailList(true);
+    }
   };
 
   return (
@@ -79,18 +115,22 @@ const SendMail: FunctionComponent = () => {
         {t.title}
       </Text>
       <InputUpload
-        id="input-id"
+        id="input-email"
         onClick={() => {
-          uploadApi("#input-id");
+          setEmailFile(uploadFile("#input-email"));
         }}
+        file={emailFile}
       >
         {t.inputs.emails}
       </InputUpload>
+
       <InputUpload
         id="input-rank"
         onClick={() => {
-          uploadApi("#input-rank");
+          setRankFile(uploadFile("#input-rank"));
+          verifyUploaded();
         }}
+        file={rankFile}
       >
         {t.inputs.ranks}
       </InputUpload>
@@ -109,13 +149,16 @@ const SendMail: FunctionComponent = () => {
         />
       )}
       <Flex justifyContent="center">
-        <Button
-          p={"12px 36px"}
-          backgroundColor="#81CC75"
-          onClick={handleButton}
-        >
-          {buttonText}
-        </Button>
+        {showMailList && (
+          <Button
+            p={"12px 36px"}
+            backgroundColor="#81CC75"
+            onClick={handleButton}
+            style={{ fontFamily: "Prompt" }}
+          >
+            {buttonText}
+          </Button>
+        )}
       </Flex>
     </Box>
   );

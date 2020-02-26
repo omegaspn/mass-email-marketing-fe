@@ -52,13 +52,14 @@ const MailList: FunctionComponent<MailListProps> = ({
     Array(emailList.length).fill("#00000f")
   );
   const [syncSubmitted, setSyncSubmitted] = useState<Boolean>();
-  // const [sendMailsSuccess, setSendMailsSuccess] = useState(false);
 
   const updateStatusListByCode = (code: number, index: number) => {
     if (code === 204) {
       statusListColor[index] = "#3F922A";
       statusList[index] = t.status.success;
     }
+    // add new status code here in the future
+    // (when requirement changes)
 
     setStatusList([...statusList]);
     setStatusListColor([...statusListColor]);
@@ -85,8 +86,8 @@ const MailList: FunctionComponent<MailListProps> = ({
         statusList[index] = t.status.sending;
         statusListColor[index] = "#3656C7";
 
-        if (response.status === 204)
-          updateStatusListByCode(response.status, index);
+        if (response.status !== 204) throw response;
+        updateStatusListByCode(response.status, index);
       } catch (error) {
         const code = error.response && error.response.status;
         if (code === 400 || code === 500) {

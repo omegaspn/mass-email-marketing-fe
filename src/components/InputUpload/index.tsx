@@ -1,9 +1,10 @@
 import React, { FunctionComponent } from "react";
-import { Box } from "rebass";
+import { Box, Flex } from "rebass";
 import styled from "styled-components";
 
 interface PropsWithId {
   id?: string;
+  file?: File;
   onClick: () => void;
 }
 
@@ -34,16 +35,25 @@ const InputText = styled(Box)`
   pointer-events: none;
 `;
 
+const FileName = styled(Box)`
+  line-height: 2;
+  padding-left: 8px;
+`;
+
 const InputUpload: FunctionComponent<PropsWithId> = ({
   id,
   onClick,
+  file,
   ...props
 }) => {
   return (
-    <InputWrapper mb={3} onClick={onClick}>
-      <InputFile id={id} />
-      <InputText>{props.children}</InputText>
-    </InputWrapper>
+    <Flex>
+      <InputWrapper mb={3} onClick={onClick}>
+        <InputFile id={id} />
+        <InputText>{props.children}</InputText>
+      </InputWrapper>
+      {file && <FileName>{file.name}</FileName>}
+    </Flex>
   );
 };
 
